@@ -35,6 +35,47 @@
 *代码够健壮：
 ·对非常规情形进行了针对性处理
 ·对代码健壮性的最基本要求是：遇到异常不崩溃
+·常见的异常类型：
+  -- SyntaxError：语法错误
+     语法错误也称为解析错误，语法错误在任何编程语言中都是最常见的错误类型，表示不符合编程语言的语法规范。js编译器的代词法分析阶段将字符流转换为记号流token，语法分析阶段会将记号流生成抽象语法树AST（详情见：https://github.com/jacksplwxy/JavaScript-compiler）。在这两个阶段，如果 Javascript引擎发现了预期之外/无法抓换的 token，或者 token 顺序和预期不一致时，就会抛出 SyntaxError。此类异常发生在JavaScript 解析/编译时，此类异常一旦发生，导致整个js文件都无法执行，而其他异常发生在代码运行时，这一类的错误会导致在错误出现的那一行之后的代码无法执行，但在那一行之前的代码不会受到影响。
+     -- 对象中属性之间无逗号
+     -- 多了大括号或者少了大括号等
+     -- JSON.parse(function(){})
+  -- TypeError：类型错误
+     运行时最常见的异常，表示变量或参数不是预期类型。
+     TypeError和ReferenceError的区别：ReferenceError就是在作用域中找不到，TypeError是在作用域中找到了但是做了它不可能做的事情
+     例如：
+     -- new关键字后面必须为构造函数
+        let Dog='gg'
+        new Dog()
+     -- ()前必须为函数。如：
+        let getName='gg'
+        getName()
+     -- 试图获取undefined、null的属性
+        console.log(null.name)
+     -- 预判错误的类型
+        let a
+        console.log(a.b)
+        或
+        let a={}
+        console.log(a.getName())
+  -- ReferenceError：引用错误
+     引用一个不存在的变量时发生的错误，每当我们创建或定义一个变量时，变量名称都会写入一个变量存储中心中。这个变量存储中心就像键值存储一样，每当我们引用变量时，它都去存储中找到Key并提取并返回Value，如果我们要找的变量不在存储中，就会抛出ReferenceError。
+     TypeError和ReferenceError的区别：ReferenceError就是在作用域中找不到，TypeError是在作用域中找到了但是做了它不可能做的事情
+     -- 上下文中不存在的变量：
+        console.log(jacksplwxy)
+     -- 外部资源没有被正确载入:
+        Uncaught ReferenceError: $ is not defined 就是因为jQuery没有正确导入而导致的
+  -- RangeError：边界错误
+     表示超出有效范围时发生的异常，主要的有以下几种情况：
+     -- 数组长度为负数或超长
+     -- 数字类型的方法参数超出预定义范围
+     -- 函数堆栈调用超过最大值
+  -- URIError：URL错误
+　　 在调用URI相关的方法中URL无效时抛出的异常，主要包括encodeURI、decodeURI()、encodeURIComponent()、decodeURIComponent()、escape()和unescape(）几个函数
+  -- EvalError:错误的使用了Eval 
+  -- Error：所有错误的父类型
+     抛出自定义错误:throw new Error("提示文字")
 ·异常的产生原因：
   -- 输入数据与预期的不一致
   -- 输入数据的来源：
@@ -42,16 +83,19 @@
         -- 网络数据：由服务器响应决定
         -- 数据库数据：源数据异常、读取异常、读取超时等
         -- 文件数据：源数据异常、路径异常等
-     -- 函数参数异常：
-        -- 需对参数进行校验、可以通过throw主动抛出异常
-
+     -- 第三方库异常
+     -- 函数参数异常
 ·如何保证代码遇到异常不崩溃
   -- 分析：js是单线程执行，为保证执行效率又加入eventLoop机制，主线程不断的循环往复的从任务队列中读取任务。其中任务分为主任务和异步任务，不同任务中发生代码异常不会影响到其他任务继续执行，只会影响同个任务中的异常后面的代码执行。
+     另外，如果有语法异常，js在编译时就会报错，整个代码都不会运行，不过语法错误通常都会被ide提示出来
   -- 由于异步任务的执行依赖于主任务的执行，所以首先要保证主任务代码的健壮性，如此才能保证主流程畅通。虽然js能够很好地容错，但在一些情况下还是出现异常而导致程序终止运行
-     -- 在处理JSON.parse()时，一定要用try/catch包起来
-     -- var cat=null cat.eat() 报错
   -- 异步任务也可能影响主流程：
      例如页面弹窗后出现异常导致关闭按钮无法正常执行，从而导致弹窗影响页面其他的交互操作。
+  -- 避免异常导致崩溃的办法汇总：
+     -- 对第三方数据源如IO数据、第三方库的数据进行检验，可以通过throw主动抛出异常
+     -- 需对参数进行校验，可以通过throw主动抛出异常
+     -- 在处理JSON.parse()时，一定要用try/catch包起来
+     -- 使用&&检验数据或方法的可用性：res&&res.data&&res.data.name
 
 
 *代码性能高
